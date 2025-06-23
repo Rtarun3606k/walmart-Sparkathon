@@ -1,33 +1,120 @@
-import { View, Text } from 'react-native';
-import React from 'react';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'expo-router';
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { AntDesign } from '@expo/vector-icons';
 
-GoogleSignin.configure({
-  webClient: '654539636997-j3cdgdmqljn9hi24u6ndab4a0df4isi1.apps.googleusercontent.com',
-});
+WebBrowser.maybeCompleteAuthSession();
 
-const index = () => {
-  const signInWithGoogle = async () => {
+// Declare Google modules (lazy loaded for native)
+let GoogleSignin, statusCodes;
+
+export default function Index() {
+  const [GoogleSigninButton, setGoogleSigninButton] = useState(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      const GoogleSignInModule = require('@react-native-google-signin/google-signin');
+      GoogleSignin = GoogleSignInModule.GoogleSignin;
+      statusCodes = GoogleSignInModule.statusCodes;
+      setGoogleSigninButton(() => GoogleSignInModule.GoogleSigninButton);
+
+      GoogleSignin.configure({
+        webClientId: '654539636997-j3cdgdmqljn9hi24u6ndab4a0df4isi1.apps.googleusercontent.com',
+      });
+    }
+  }, []);
+
+  const discovery = {
+    authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenEndpoint: 'https://oauth2.googleapis.com/token',
+    revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
+  };
+
+  const redirectUri =
+    Platform.OS === 'web'
+      ? window.location.origin
+      : AuthSession.makeRedirectUri({ useProxy: true });
+
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: '654539636997-j3cdgdmqljn9hi24u6ndab4a0df4isi1.apps.googleusercontent.com',
+      scopes: ['openid', 'profile', 'email'],
+      responseType: AuthSession.ResponseType.Code,
+      redirectUri,
+    },
+    discovery
+  );
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { code } = response.params;
+      console.log('Web Auth Success, code:', code);
+      // Exchange the code with your backend for tokens
+    }
+  }, [response]);
+
+  const signInWithGoogleWeb = async () => {
     try {
-      // Initialize Google Sign-In
+      if (!request) return alert('Auth request not ready.');
+      const result = await promptAsync({ useProxy: true });
+      if (result.type === 'success') {
+        alert('Sign-in successful!');
+      } else {
+        console.log('Web sign-in result:', result);
+      }
+    } catch (error) {
+      console.error('Web sign-in error:', error);
+      alert('Sign-in error: ' + error.message);
+    }
+  };
+
+  const signInWithGoogleNative = async () => {
+    try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      console.log('User Info:', userInfo);
+      console.log('Native User Info:', userInfo);
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('User cancelled the sign-in flow');
+        console.log('User cancelled the sign-in');
       } else if (error.code === statusCodes.IN_PROGRESS) {
         console.log('Sign-in is in progress');
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Play services are not available');
       } else {
-        console.error('Sign-in error:', error);
+        console.error('Native sign-in error:', error);
       }
+    }
+  };
+
+  const handleGoogleSignIn = () => {
+    if (Platform.OS === 'web') {
+      signInWithGoogleWeb();
+    } else {
+      signInWithGoogleNative();
+    }
+  };
+
+  const renderGoogleSignInButton = () => {
+    if (Platform.OS === 'web') {
+      return (
+        <TouchableOpacity
+          onPress={handleGoogleSignIn}
+          className="mt-6 flex-row items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 shadow-lg">
+          <AntDesign name="google" size={20} color="#4285F4" />
+          <Text className="ml-3 text-lg font-semibold text-gray-700">Sign in with Google</Text>
+        </TouchableOpacity>
+      );
+    } else if (GoogleSigninButton) {
+      return (
+        <GoogleSigninButton
+          style={{ width: 192, height: 48, marginTop: 24 }}
+          size={GoogleSigninButton.Size.Wide}
+          color={GoogleSigninButton.Color.Dark}
+          onPress={handleGoogleSignIn}
+        />
+      );
+    } else {
+      return null;
     }
   };
 
@@ -38,14 +125,7 @@ const index = () => {
       <Link href="/home" className="text-xl text-blue-500 underline">
         Go to Home →
       </Link>
-      <GoogleSigninButton
-        style={{ width: 192, height: 48 }}
-        size={GoogleSigninButton.Size.Wide}
-        color={GoogleSigninButton.Color.Dark}
-        onPress={signInWithGoogle}
-      />
+      {renderGoogleSignInButton()}
     </View>
   );
-};
-
-export default index;
+}
