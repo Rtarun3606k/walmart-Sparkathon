@@ -41,8 +41,9 @@ export default function Index() {
     {
       clientId: '654539636997-j3cdgdmqljn9hi24u6ndab4a0df4isi1.apps.googleusercontent.com',
       scopes: ['openid', 'profile', 'email'],
-      responseType: AuthSession.ResponseType.Code,
-      redirectUri,
+      responseType: 'token',
+      usePKCE: false, // 👈 Disable PKCE here
+      redirectUri: window.location.origin,
     },
     discovery
   );
@@ -54,15 +55,26 @@ export default function Index() {
       // Exchange the code with your backend for tokens
     }
   }, [response]);
-
   const signInWithGoogleWeb = async () => {
     try {
       if (!request) return alert('Auth request not ready.');
-      const result = await promptAsync({ useProxy: true });
-      if (result.type === 'success') {
-        alert('Sign-in successful!');
+
+      const result = await promptAsync({ useProxy: false });
+
+      if (result.type === 'success' && result.authentication?.accessToken) {
+        const accessToken = result.authentication.accessToken;
+        console.log('Access Token:', accessToken);
+
+        // Fetch user profile
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        const userInfo = await userInfoResponse.json();
+        console.log('User Info:', userInfo);
+        alert(`Welcome ${userInfo.name}`);
       } else {
-        console.log('Web sign-in result:', result);
+        console.warn('Sign-in was cancelled or failed:', result);
       }
     } catch (error) {
       console.error('Web sign-in error:', error);
