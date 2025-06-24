@@ -1,0 +1,23 @@
+// Define the datasource and generator
+
+datasource db {
+  provider = "postgresql" // Change to your DB provider if needed
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id               Int      @id @default(autoincrement())
+  productName      String
+  companyName      String
+  carbonFootprint  Float
+  price            Float
+  imageUrl         String
+  category         String
+  description      String
+  suggestions      Product[] @relation("ProductSuggestions")
+  suggestedBy      Product[] @relation("ProductSuggestions")
+}
