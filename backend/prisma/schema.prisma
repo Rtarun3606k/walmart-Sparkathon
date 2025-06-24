@@ -20,4 +20,20 @@ model Product {
   description      String
   suggestions      Product[] @relation("ProductSuggestions")
   suggestedBy      Product[] @relation("ProductSuggestions")
+  carts             Cart[]    @relation("CartProducts")
 }
+
+model User {
+  id               Int      @id @default(autoincrement())
+  username         String   
+  email            String   @unique
+  cart             Cart[]
+}
+
+model Cart {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  products  Product[] @relation("CartProducts")
+}
+
