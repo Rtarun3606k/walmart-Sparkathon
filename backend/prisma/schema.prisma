@@ -1,13 +1,19 @@
-// Define the datasource and generator
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-datasource db {
-  provider = "postgresql" // Change to your DB provider if needed
-  url      = env("DATABASE_URL")
-}
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 
 model Product {
   id               Int      @id @default(autoincrement())
@@ -37,4 +43,3 @@ model Cart {
   user      User      @relation(fields: [userId], references: [id])
   products  Product[] @relation("CartProducts")
 }
-
