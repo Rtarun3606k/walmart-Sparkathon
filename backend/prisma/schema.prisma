@@ -30,11 +30,16 @@ model Product {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String
-  email     String   @unique
-  cart      Cart[]
-  createdAt DateTime @default(now())
+  id           String   @id @default(uuid())
+  username     String
+  email        String   @unique
+  cart         Cart[]
+  createdAt    DateTime @default(now())
+  lastLogin    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  refreshToken String?  @unique
+  provider     Provider @default(GOOGLE) // For OAuth providers like Google, Facebook, etc.
+  role         UserRole @default(USER) // Role of the user in the system
 
   @@index([email], name: "User_email_idx")
   @@map("User")
@@ -55,4 +60,24 @@ model Test {
 
   @@index([name], name: "Test_name_idx")
   @@map("Test")
+}
+
+// enums
+
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+
+enum Provider {
+  GOOGLE
+  FACEBOOK
+  GITHUB
+  TWITTER
+  MICROSOFT
+  APPLE
+  AMAZON
+  WALMART
+  OTHER
 }

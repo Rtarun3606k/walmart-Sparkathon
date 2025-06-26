@@ -1,11 +1,23 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,Blueprint
 from flask_cors import CORS
 import os
 from Database.PrismaConnector import ConnectDB
 import asyncio
 from datetime import datetime
 
+from flask_jwt_extended import JWTManager
+
+# import all blueprints
+from Routes.Auth import auth_bp
+
+# Initialize Flask app and CORS
 app = Flask(__name__)
+jwt = JWTManager(app)
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your_default_secret_key')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600  # Token expiration time
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = 86400  # Refresh token expiration time
+# Initialize CORS
+
 CORS(app)
 
 
@@ -17,6 +29,7 @@ def health_check():
 @app.route("/test",methods=["GET"])
 async def func():
     result = await ConnectDB()
+    print("Connected to the database successfully", type(result))
     
     try:
         # Create a unique email to avoid conflicts
@@ -46,6 +59,9 @@ async def func():
         # Always disconnect from the database
         await result.disconnect()
 
+
+
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 
 
