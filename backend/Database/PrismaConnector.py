@@ -30,5 +30,14 @@ async def main() -> None:
     await db.disconnect()
 
 
+async def ConnectDB() -> Prisma:
+    """
+    Connect to the Prisma database and return the Prisma client.
+    """
+    db = Prisma()
+    await db.connect()
+    return db
+
+
 if __name__ == '__main__':
     asyncio.run(main())

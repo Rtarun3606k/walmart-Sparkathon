@@ -16,7 +16,7 @@ generator db {
 }
 
 model Product {
-  id              Int       @id @default(autoincrement())
+  id              String    @id @default(uuid())
   productName     String
   companyName     String
   carbonFootprint Float
@@ -30,16 +30,29 @@ model Product {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   username  String
   email     String   @unique
   cart      Cart[]
   createdAt DateTime @default(now())
+
+  @@index([email], name: "User_email_idx")
+  @@map("User")
 }
 
 model Cart {
-  id       Int       @id @default(autoincrement())
-  userId   Int
+  id       String    @id @default(uuid())
+  userId   String
   user     User      @relation(fields: [userId], references: [id])
   products Product[] @relation("CartProducts")
+}
+
+model Test {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name], name: "Test_name_idx")
+  @@map("Test")
 }
