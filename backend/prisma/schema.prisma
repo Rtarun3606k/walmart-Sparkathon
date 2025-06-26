@@ -4,42 +4,42 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+}
 
 model Product {
-  id               Int      @id @default(autoincrement())
-  productName      String
-  companyName      String
-  carbonFootprint  Float
-  price            Float
-  imageUrl         String
-  category         String
-  description      String
-  suggestions      Product[] @relation("ProductSuggestions")
-  suggestedBy      Product[] @relation("ProductSuggestions")
-  carts             Cart[]    @relation("CartProducts")
+  id              Int       @id @default(autoincrement())
+  productName     String
+  companyName     String
+  carbonFootprint Float
+  price           Float
+  imageUrl        String
+  category        String
+  description     String
+  suggestions     Product[] @relation("ProductSuggestions")
+  suggestedBy     Product[] @relation("ProductSuggestions")
+  carts           Cart[]    @relation("CartProducts")
 }
 
 model User {
-  id               Int      @id @default(autoincrement())
-  username         String   
-  email            String   @unique
-  cart             Cart[]
-  createdAt        DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  username  String
+  email     String   @unique
+  cart      Cart[]
+  createdAt DateTime @default(now())
 }
 
 model Cart {
-  id        Int       @id @default(autoincrement())
-  userId    Int
-  user      User      @relation(fields: [userId], references: [id])
-  products  Product[] @relation("CartProducts")
+  id       Int       @id @default(autoincrement())
+  userId   Int
+  user     User      @relation(fields: [userId], references: [id])
+  products Product[] @relation("CartProducts")
 }
