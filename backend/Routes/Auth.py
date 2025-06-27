@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from Database.PrismaConnector import ConnectDB
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, verify_jwt_in_request_optional, get_jwt
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, create_refresh_token, get_jwt
 from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__)
@@ -33,7 +33,9 @@ async def auth():
             access_token = create_access_token(identity=user_Check.email, additional_claims={
                 'username': user_Check.username,
                 "email": user_Check.email,
-                "id": user_Check.id
+                "id": user_Check.id,
+
+
             })
 
             # Create a refresh token with a jti (JWT ID)
@@ -66,6 +68,7 @@ async def auth():
                 'email': data['email'],
                 'username':data['username'],
                 'cart':[],
+                "profileUrl": data.get('profileUrl', None),  # Optional profile URL
                 
             })
 

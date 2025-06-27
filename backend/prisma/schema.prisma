@@ -33,6 +33,7 @@ model User {
   id           String   @id @default(uuid())
   username     String
   email        String   @unique
+  profileUrl   String?
   cart         Cart[]
   createdAt    DateTime @default(now())
   lastLogin    DateTime @default(now())
@@ -41,7 +42,7 @@ model User {
   provider     Provider @default(GOOGLE) // For OAuth providers like Google, Facebook, etc.
   role         UserRole @default(USER) // Role of the user in the system
 
-  @@index([email], name: "User_email_idx")
+  @@index([role, email], name: "User_role_email_idx")
   @@map("User")
 }
 
